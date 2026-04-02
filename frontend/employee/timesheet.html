@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timesheet — Nizan Tech</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../css/globals.css" />
+  <link rel="stylesheet" href="../css/sidebar.css" />
+  <link rel="stylesheet" href="../css/employee.css" />
+</head>
+
+<body>
+  <div class="mobile-topbar">
+    <button class="hamburger" id="hamburger">☰</button>
+    <span class="mobile-logo">Nizan Tech</span>
+    <div style="width:40px"></div>
+  </div>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon" style="background: none; padding: 0;">
+          <img src="/assets/sidebar-logo.png" alt="Nizan logo" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
+        <div class="sidebar-logo-text">
+          <span class="sidebar-logo-name">Nizan Tech</span>
+          <span class="sidebar-logo-sub">Employee Panel</span>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebarAvatar" style="background:#00D4AA">E</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarUserName">Employee</div>
+          <span class="sidebar-user-role role-employee" id="sidebarUserRole">employee</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Menu</div>
+        <a href="dashboard.html" class="nav-item" data-nav="dashboard"><span
+            class="nav-icon">📊</span><span>Dashboard</span></a>
+        <a href="sprint.html" class="nav-item" data-nav="sprint"><span class="nav-icon">🗂️</span><span>My
+            Sprint</span></a>
+        <a href="timesheet.html" class="nav-item" data-nav="timesheet"><span
+            class="nav-icon">⏱️</span><span>Timesheet</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="theme-toggle" id="themeToggle"><span class="nav-icon">🌙</span><span>Dark Mode</span>
+          <div class="toggle-switch"></div>
+        </div>
+        <button class="nav-item" id="logoutBtn"><span class="nav-icon">🚪</span><span>Logout</span></button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-content">
+        <div class="page-header">
+          <div class="page-header-row">
+            <div>
+              <h1 class="page-title">Timesheet</h1>
+              <p class="page-subtitle">Full summary of your logged hours</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="timesheet-summary" id="timesheetSummary">
+          <div class="stat-card violet animate-in">
+            <div class="stat-label">Sprint Total</div>
+            <div class="stat-value text-primary" id="tsTotalHours">—</div>
+            <div style="font-size:12px;color:var(--text-muted)">All hours this sprint</div>
+            <div class="stat-icon">📊</div>
+          </div>
+          <div class="stat-card teal animate-in" style="animation-delay:0.1s">
+            <div class="stat-label">Days Logged</div>
+            <div class="stat-value text-accent" id="tsDaysLogged">—</div>
+            <div style="font-size:12px;color:var(--text-muted)">Days with entries</div>
+            <div class="stat-icon">📅</div>
+          </div>
+          <div class="stat-card orange animate-in" style="animation-delay:0.2s">
+            <div class="stat-label">Total Blocks</div>
+            <div class="stat-value text-warning" id="tsTotalBlocks">—</div>
+            <div style="font-size:12px;color:var(--text-muted)">Time entries</div>
+            <div class="stat-icon">📝</div>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="timesheet-filters card" style="margin-bottom:20px;padding:16px">
+          <div class="filter-group">
+            <label>🔍</label>
+            <input type="text" id="searchDesc" class="form-input" placeholder="Search by description..."
+              style="width:220px" />
+          </div>
+          <div class="filter-group">
+            <label>Sprint</label>
+            <select id="filterSprintTs" class="form-input" style="width:180px">
+              <option value="">All Sprints</option>
+            </select>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="resetTsFilters">Reset</button>
+        </div>
+
+        <!-- Timesheet Table -->
+        <div class="card animate-in">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Day</th>
+                  <th>Date</th>
+                  <th>Sprint</th>
+                  <th>Time Block</th>
+                  <th>Description</th>
+                  <th>Duration</th>
+                </tr>
+              </thead>
+              <tbody id="timesheetTbody">
+                <tr>
+                  <td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">
+                    <div class="spinner" style="margin:0 auto 12px"></div>Loading timesheet...
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr style="background:rgba(108,99,255,0.06)">
+                  <td colspan="5" style="font-weight:700;padding:13px 16px">Sprint Total</td>
+                  <td style="font-weight:800;color:var(--accent);font-size:15px;padding:13px 16px" id="tsFooterTotal">—
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/utils.js"></script>
+  <script src="../js/employee/timesheet.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Nizan Tech</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="apple-touch-icon" href="assets/favicon.png">
+  <link rel="stylesheet" href="css/globals.css" />
+  <link rel="stylesheet" href="css/login.css" />
+</head>
+
+<body>
+  <div class="space-bg"></div>
+  <div class="dot-grid"></div>
+  <!-- Orbs -->
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+  <!-- Particles (injected via JS or statically) -->
+  <div class="particles">
+    <div class="particle p1"></div>
+    <div class="particle p2"></div>
+    <div class="particle p3"></div>
+    <div class="particle p4"></div>
+    <div class="particle p5"></div>
+    <div class="particle p6"></div>
+    <div class="particle p7"></div>
+    <div class="particle p8"></div>
+    <div class="particle p9"></div>
+    <div class="particle p10"></div>
+  </div>
+
+  <div class="login-page">
+    <div class="login-card">
+      <div class="card-edge-highlight"></div>
+
+      <!-- Logo -->
+      <div class="login-logo fade-up" style="animation-delay: 0.1s">
+        <div class="login-logo-icon" style="background: none; padding: 0;">
+          <div class="conic-shimmer"></div>
+          <img src="/assets/sidebar-logo.png" alt="Nizan Tech logo"
+            style="width: 32px; height: 32px; object-fit: contain; position: relative; z-index: 2;">
+        </div>
+        <div class="login-logo-text">Nizan Tech</div>
+      </div>
+
+      <!-- Heading -->
+      <div class="login-header fade-up" style="animation-delay: 0.18s">
+        <h1 class="login-title">Nizan Tech</h1>
+        <p class="login-sub">Welcome back. Enter your credentials to access the workspace.</p>
+      </div>
+
+      <!-- Error -->
+      <div class="login-error fade-up" id="loginError" style="animation-delay: 0.2s"></div>
+
+      <!-- Form -->
+      <form class="login-form" id="loginForm" novalidate>
+        <div class="form-group fade-up" style="animation-delay: 0.26s">
+          <label class="form-label" for="email">EMAIL ADDRESS</label>
+          <div class="input-glow-wrap">
+            <input type="email" id="email" class="form-input" placeholder="you@company.com" required
+              autocomplete="email" />
+          </div>
+        </div>
+
+        <div class="form-group fade-up" style="animation-delay: 0.34s">
+          <div class="password-header">
+            <label class="form-label" for="password">PASSWORD</label>
+          </div>
+          <div class="input-glow-wrap">
+            <input type="password" id="password" class="form-input" placeholder="••••••••" required
+              autocomplete="current-password" />
+            <span class="toggle-password" id="togglePass">Show</span>
+          </div>
+        </div>
+
+        <div class="form-group remember-group fade-up" style="animation-delay: 0.42s">
+          <label class="custom-checkbox-wrap" tabindex="0">
+            <input type="checkbox" id="remember" class="hidden-checkbox" />
+            <div class="custom-checkbox">
+              <svg viewBox="0 0 14 10" fill="none" class="check-icon">
+                <path d="M1 5L5 9L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+            </div>
+            <span class="remember-label">Stay signed in</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-gradient fade-up" id="loginBtn" style="animation-delay: 0.5s">
+          <span class="btn-text" id="loginBtnText">Sign In</span>
+          <span class="btn-spinner" id="loginSpinner" style="display:none">
+            <svg class="spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+              <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path>
+            </svg>
+          </span>
+        </button>
+      </form>
+    </div>
+    <div class="login-footer fade-up" style="animation-delay: 0.58s">
+      Having trouble? <a href="#">Contact workspace admin</a>
+    </div>
+  </div>
+
+  <script src="js/utils.js"></script>
+  <script>
+    // Init theme
+    (() => {
+      const t = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+
+    // Toggle password visibility
+    document.getElementById('togglePass').addEventListener('click', function () {
+      const input = document.getElementById('password');
+      const isText = input.type === 'text';
+      input.type = isText ? 'password' : 'text';
+      this.textContent = isText ? '👁' : '🙈';
+    });
+
+    // Login form
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errorEl = document.getElementById('loginError');
+      const btn = document.getElementById('loginBtn');
+      const btnText = document.getElementById('loginBtnText');
+      const spinner = document.getElementById('loginSpinner');
+
+      errorEl.classList.remove('show');
+      btnText.style.display = 'none';
+      spinner.style.display = 'flex';
+      btn.disabled = true;
+
+      try {
+        const data = await api.post('/auth/login', { email, password });
+        const role = data.user.role;
+        toast.success(`Welcome back, ${data.user.name}!`);
+        setTimeout(() => {
+          window.location.href = role === 'admin' ? '/admin/dashboard.html' : '/employee/dashboard.html';
+        }, 600);
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.classList.add('show');
+        btnText.style.display = 'inline';
+        spinner.style.display = 'none';
+        btn.disabled = false;
+      }
+    });
+
+    // Already logged in?
+    (async () => {
+      try {
+        const data = await api.get('/auth/me');
+        const role = data.user.role;
+        window.location.href = role === 'admin' ? '/admin/dashboard.html' : '/employee/dashboard.html';
+      } catch { /* not logged in */ }
+    })();
+  </script>
+</body>
+
+</html>

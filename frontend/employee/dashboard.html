@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Nizan Tech</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../css/globals.css" />
+  <link rel="stylesheet" href="../css/sidebar.css" />
+  <link rel="stylesheet" href="../css/employee.css" />
+</head>
+
+<body>
+  <div class="mobile-topbar">
+    <button class="hamburger" id="hamburger">☰</button>
+    <span class="mobile-logo">Nizan Tech</span>
+    <div style="width:40px"></div>
+  </div>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon" style="background: none; padding: 0;">
+          <img src="/assets/sidebar-logo.png" alt="Nizan logo" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
+        <div class="sidebar-logo-text">
+          <span class="sidebar-logo-name">Nizan Tech</span>
+          <span class="sidebar-logo-sub">Employee Panel</span>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebarAvatar" style="background:#00D4AA">E</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarUserName">Employee</div>
+          <span class="sidebar-user-role role-employee" id="sidebarUserRole">employee</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Menu</div>
+        <a href="dashboard.html" class="nav-item" data-nav="dashboard"><span
+            class="nav-icon">📊</span><span>Dashboard</span></a>
+        <a href="sprint.html" class="nav-item" data-nav="sprint"><span class="nav-icon">🗂️</span><span>My
+            Sprint</span></a>
+        <a href="timesheet.html" class="nav-item" data-nav="timesheet"><span
+            class="nav-icon">⏱️</span><span>Timesheet</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="theme-toggle" id="themeToggle"><span class="nav-icon">🌙</span><span>Dark Mode</span>
+          <div class="toggle-switch"></div>
+        </div>
+        <button class="nav-item" id="logoutBtn"><span class="nav-icon">🚪</span><span>Logout</span></button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-content">
+        <div class="page-header">
+          <div class="page-header-row">
+            <div>
+              <h1 class="page-title">Dashboard</h1>
+              <p class="page-subtitle" id="welcomeMsg">Loading...</p>
+            </div>
+            <a href="sprint.html" class="btn btn-primary">🗂️ View My Sprint</a>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="dash-grid" id="dashGrid">
+          <div class="stat-card violet animate-in">
+            <div class="stat-label">Sprint Days</div>
+            <div class="stat-value text-primary" id="statTasks">—</div>
+            <div style="font-size:12px;color:var(--text-muted)">Total assigned days</div>
+            <div class="stat-icon">📋</div>
+          </div>
+          <div class="stat-card teal animate-in" style="animation-delay:0.1s">
+            <div class="stat-label">Hours Tracked</div>
+            <div class="stat-value text-accent" id="statHours">—</div>
+            <div style="font-size:12px;color:var(--text-muted)">This sprint total</div>
+            <div class="stat-icon">⏱️</div>
+          </div>
+          <div class="stat-card orange animate-in" style="animation-delay:0.2s">
+            <div class="stat-label">Today's Hours</div>
+            <div class="stat-value text-warning" id="statToday">—</div>
+            <div style="font-size:12px;color:var(--text-muted)">Logged today</div>
+            <div class="stat-icon">📅</div>
+          </div>
+          <div class="stat-card red animate-in" style="animation-delay:0.3s">
+            <div class="stat-label">Active Sprint</div>
+            <div class="stat-value" id="statSprintName" style="font-size:16px;font-weight:700;color:var(--text)">—</div>
+            <div id="statSprintStatus" style="font-size:12px;color:var(--text-muted)">Current sprint</div>
+            <div class="stat-icon">🚀</div>
+          </div>
+        </div>
+
+        <!-- Today's Blocks -->
+        <div class="card animate-in" style="animation-delay:0.4s">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h2 style="font-size:16px;font-weight:700">Today's Time Blocks</h2>
+            <a href="sprint.html" class="btn btn-ghost btn-sm">View Sprint →</a>
+          </div>
+          <div id="todayBlocks">
+            <div class="spinner" style="margin:0 auto"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/socket.js"></script>
+  <script src="../js/employee/dashboard.js"></script>
+</body>
+
+</html>

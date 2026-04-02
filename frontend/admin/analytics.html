@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global Analytics — Nizan Tech Admin</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../css/globals.css" />
+  <link rel="stylesheet" href="../css/sidebar.css" />
+  <link rel="stylesheet" href="../css/admin.css" />
+</head>
+
+<body>
+  <div class="mobile-topbar">
+    <button class="hamburger" id="hamburger">☰</button>
+    <span class="mobile-logo">Nizan Tech</span>
+    <div style="width:40px"></div>
+  </div>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon" style="background: none; padding: 0;">
+          <img src="/assets/sidebar-logo.png" alt="Nizan logo" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
+        <div class="sidebar-logo-text">
+          <span class="sidebar-logo-name">Nizan Tech</span>
+          <span class="sidebar-logo-sub">Admin Panel</span>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebarAvatar" style="background:#6C63FF">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarUserName">Admin</div>
+          <span class="sidebar-user-role role-admin" id="sidebarUserRole">admin</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Overview</div>
+        <a href="dashboard.html" class="nav-item" data-nav="dashboard"><span
+            class="nav-icon">📊</span><span>Dashboard</span></a>
+        <div class="nav-section-label">Management</div>
+        <a href="employees.html" class="nav-item" data-nav="employees"><span
+            class="nav-icon">👥</span><span>Employees</span></a>
+        <a href="sprints.html" class="nav-item" data-nav="sprints"><span
+            class="nav-icon">🗂️</span><span>Sprints</span></a>
+        <div class="nav-section-label">Monitoring</div>
+        <a href="analytics.html" class="nav-item" data-nav="analytics"><span
+            class="nav-icon">📊</span><span>Analytics</span></a>
+        <a href="monitor.html" class="nav-item" data-nav="monitor"><span class="nav-icon">📡</span><span>Live
+            Monitor</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="theme-toggle" id="themeToggle"><span class="nav-icon">🌙</span><span>Dark Mode</span>
+          <div class="toggle-switch"></div>
+        </div>
+        <button class="nav-item" id="logoutBtn"><span class="nav-icon">🚪</span><span>Logout</span></button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-content">
+        <div class="page-header" style="margin-bottom:16px;">
+          <div class="page-header-row">
+            <div>
+              <h1 class="page-title">Global Analytics</h1>
+              <p class="page-subtitle">Understand performance across all sprints and employees</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filters Row -->
+        <div class="card animate-in"
+          style="margin-bottom: 24px; display:flex; gap:16px; align-items:flex-end; padding:16px 20px;">
+          <div style="flex:1">
+            <label style="font-size:12px;font-weight:600;display:block;margin-bottom:6px">Filter by Sprint</label>
+            <select id="analyticsSprintFilter" class="form-input">
+              <option value="all">All Sprints</option>
+            </select>
+          </div>
+          <div style="flex:1">
+            <label style="font-size:12px;font-weight:600;display:block;margin-bottom:6px">Filter by Employee</label>
+            <select id="analyticsEmpFilter" class="form-input">
+              <option value="all">All Employees</option>
+            </select>
+          </div>
+          <div style="display:flex; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden">
+            <button class="btn btn-ghost" id="btnGroupDay" onclick="setAnalyticsGroup('day')"
+              style="border-radius:0; border-right:1px solid var(--border); font-size:12px; height:38px">Day</button>
+            <button class="btn btn-ghost" id="btnGroupWeek" onclick="setAnalyticsGroup('week')"
+              style="border-radius:0; border-right:1px solid var(--border); font-size:12px; height:38px">Week</button>
+            <button class="btn btn-ghost" id="btnGroupMonth" onclick="setAnalyticsGroup('month')"
+              style="border-radius:0; font-size:12px; height:38px">Month</button>
+          </div>
+        </div>
+
+        <!-- Top Level Chart -->
+        <div class="card animate-in" style="animation-delay:0.1s; padding:24px; margin-bottom: 24px;">
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:20px">Performance Chart</h2>
+          <div style="height:400px; position:relative" id="analyticsChartWrapper">
+            <canvas id="analyticsChart" style="max-width:100%; height:100%"></canvas>
+          </div>
+        </div>
+
+        <!-- Summary Stats grid under chart -->
+        <div class="stats-grid animate-in" style="animation-delay:0.2s">
+          <div class="stat-card violet">
+            <div class="stat-label">Total Time Logged</div>
+            <div class="stat-value text-primary" id="statGlobalHours">0h</div>
+            <div style="font-size:12px;color:var(--text-muted)">In current view</div>
+            <div class="stat-icon">⏱️</div>
+          </div>
+          <div class="stat-card teal">
+            <div class="stat-label">Tasks Completed</div>
+            <div class="stat-value text-accent" id="statGlobalTasks">0</div>
+            <div style="font-size:12px;color:var(--text-muted)">In current view</div>
+            <div class="stat-icon">✔️</div>
+          </div>
+        </div>
+
+        <!-- Detailed Tracker (Day-by-Day Grid) -->
+        <div id="detailedSprintContainer" style="display:none; margin-top:24px;">
+          <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;">Day-by-Day Tracker</h2>
+
+          <div class="sprint-header animate-in" id="dsHeader"
+            style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px; position:relative; overflow:hidden; margin-bottom:24px;">
+            <div
+              style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg, var(--primary), var(--accent));">
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <div>
+                <div style="font-size:20px;font-weight:700;" id="dsTitle">Sprint Title</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:4px;" id="dsDates">Date -> Date</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:18px;font-weight:700;color:var(--accent);" id="dsHours">0.0h</div>
+                <div style="font-size:11px;color:var(--text-muted);">Total logged</div>
+              </div>
+            </div>
+            <div class="sprint-progress-label"
+              style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;">
+              <span id="dsProgressText">0 of 0 fully completed days</span>
+              <span id="dsProgressPct">0%</span>
+            </div>
+            <div class="progress-bar" style="background:var(--border);height:6px;border-radius:3px;overflow:hidden;">
+              <div id="dsProgressFill"
+                style="background:linear-gradient(90deg, var(--primary), var(--accent));height:100%;width:0%;"></div>
+            </div>
+          </div>
+
+          <div class="days-grid" id="dsDaysGrid"
+            style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px;"></div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Day Details Panel Modal -->
+  <div class="modal-overlay" id="dayDetailsModal">
+    <div class="modal slide-up" style="max-width: 800px;">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" id="ddTitle">Day Details</h2>
+          <p class="modal-subtitle" id="ddSubtitle">Date and Sprint Info</p>
+        </div>
+        <button class="icon-btn" onclick="modal.close('dayDetailsModal')">✕</button>
+      </div>
+      <div class="modal-body" style="padding-top: 0;">
+        <div style="display:flex; gap:20px; margin-bottom: 24px;">
+          <div class="stat-card violet" style="flex:1;">
+            <div class="stat-label">Total Hours</div>
+            <div class="stat-value text-primary" id="ddTotalHours">0h</div>
+          </div>
+          <div class="stat-card teal" style="flex:1;">
+            <div class="stat-label">Tasks Completed</div>
+            <div class="stat-value text-accent" id="ddTotalTasks">0</div>
+          </div>
+        </div>
+
+        <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--text);">Employee Breakdown</h3>
+        <div style="border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="background: var(--surface-2); border-bottom: 1px solid var(--border); text-align: left;">
+                <th style="padding: 12px 16px; font-weight: 600; color: var(--text-muted);">Employee</th>
+                <th style="padding: 12px 16px; font-weight: 600; color: var(--text-muted);">Tasks Assig.</th>
+                <th style="padding: 12px 16px; font-weight: 600; color: var(--text-muted);">Completed</th>
+                <th style="padding: 12px 16px; font-weight: 600; color: var(--text-muted);">Hours</th>
+                <th style="padding: 12px 16px; font-weight: 600; color: var(--text-muted);">Status & Progress</th>
+              </tr>
+            </thead>
+            <tbody id="ddEmployeeTable">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    /* Admin custom styles for day cards to mirror employee view */
+    .day-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .day-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px -10px rgba(108, 99, 255, 0.2);
+      border-color: var(--primary);
+    }
+
+    .day-card.past {
+      background: var(--surface-2);
+      border-color: transparent;
+    }
+
+    .day-card.future {
+      opacity: 0.6;
+      background: transparent;
+      border-style: dashed;
+    }
+
+    .day-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .day-date {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin: 4px 0 14px 0;
+    }
+
+    .day-tasks {
+      flex: 1;
+      border-left: 2px solid var(--border);
+      padding-left: 10px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .badge-status {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-completed {
+      background: rgba(0, 212, 170, 0.15);
+      color: #00D4AA;
+      border: 1px solid rgba(0, 212, 170, 0.3);
+    }
+
+    .badge-inprogress {
+      background: rgba(255, 170, 0, 0.15);
+      color: #FFAA00;
+      border: 1px solid rgba(255, 170, 0, 0.3);
+    }
+
+    .badge-notstarted {
+      background: rgba(255, 75, 75, 0.15);
+      color: #FF4B4B;
+      border: 1px solid rgba(255, 75, 75, 0.3);
+    }
+
+    .day-stats {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--border-transparent);
+      padding-top: 12px;
+      margin-top: auto;
+    }
+
+    .hr-badge {
+      background: rgba(108, 99, 255, 0.1);
+      color: #6C63FF;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid rgba(108, 99, 255, 0.2);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+    }
+
+    .emp-table-row {
+      border-bottom: 1px solid var(--border-transparent);
+      transition: background 0.2s;
+    }
+
+    .emp-table-row:hover {
+      background: var(--surface);
+    }
+
+    .emp-table-row td {
+      padding: 12px 16px;
+      vertical-align: middle;
+    }
+
+    .mini-progress {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 6px;
+      width: 100px;
+    }
+
+    .mini-progress-fill {
+      height: 100%;
+      border-radius: 3px;
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/admin/analytics.js"></script>
+</body>
+
+</html>

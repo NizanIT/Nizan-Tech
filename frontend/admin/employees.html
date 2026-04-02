@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employees — Nizan Tech Admin</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../css/globals.css" />
+  <link rel="stylesheet" href="../css/sidebar.css" />
+  <link rel="stylesheet" href="../css/admin.css" />
+</head>
+
+<body>
+  <div class="mobile-topbar">
+    <button class="hamburger" id="hamburger">☰</button>
+    <span class="mobile-logo">Nizan Tech</span>
+    <div style="width:40px"></div>
+  </div>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon" style="background: none; padding: 0;">
+          <img src="/assets/sidebar-logo.png" alt="Nizan logo" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
+        <div class="sidebar-logo-text">
+          <span class="sidebar-logo-name">Nizan Tech</span>
+          <span class="sidebar-logo-sub">Admin Panel</span>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebarAvatar" style="background:#6C63FF">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarUserName">Admin</div>
+          <span class="sidebar-user-role role-admin" id="sidebarUserRole">admin</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Overview</div>
+        <a href="dashboard.html" class="nav-item" data-nav="dashboard"><span
+            class="nav-icon">📊</span><span>Dashboard</span></a>
+        <div class="nav-section-label">Management</div>
+        <a href="employees.html" class="nav-item" data-nav="employees"><span
+            class="nav-icon">👥</span><span>Employees</span></a>
+        <a href="sprints.html" class="nav-item" data-nav="sprints"><span
+            class="nav-icon">🗂️</span><span>Sprints</span></a>
+        <div class="nav-section-label">Monitoring</div>
+        <a href="analytics.html" class="nav-item" data-nav="analytics"><span
+            class="nav-icon">📊</span><span>Analytics</span></a>
+        <a href="monitor.html" class="nav-item" data-nav="monitor"><span class="nav-icon">📡</span><span>Live
+            Monitor</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="theme-toggle" id="themeToggle"><span class="nav-icon">🌙</span><span>Dark Mode</span>
+          <div class="toggle-switch"></div>
+        </div>
+        <button class="nav-item" id="logoutBtn"><span class="nav-icon">🚪</span><span>Logout</span></button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-content">
+        <div class="page-header">
+          <div class="page-header-row">
+            <div>
+              <h1 class="page-title">Employees</h1>
+              <p class="page-subtitle">Manage your team members</p>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center">
+              <div class="search-bar" style="width:220px">
+                <span class="icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Search employees..." />
+              </div>
+              <button class="btn btn-primary" id="addEmployeeBtn">➕ Add Employee</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card animate-in">
+          <div class="table-wrap">
+            <table id="employeeTable">
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="employeeTbody">
+                <tr>
+                  <td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">
+                    <div class="spinner" style="margin:0 auto 12px"></div>Loading employees...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add/Edit Employee Modal -->
+  <div class="modal-overlay" id="empModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="empModalTitle">Add Employee</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:2px">Fill in the employee details below</div>
+        </div>
+        <button class="modal-close" onclick="modal.close('empModal')">✕</button>
+      </div>
+      <form id="empForm">
+        <input type="hidden" id="empId" />
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="form-group">
+            <label class="form-label" for="empName">Full Name</label>
+            <input type="text" id="empName" class="form-input" placeholder="Jane Smith" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="empEmail">Email Address</label>
+            <input type="email" id="empEmail" class="form-input" placeholder="jane@company.com" required />
+          </div>
+          <div class="form-group" id="passGroup">
+            <label class="form-label" for="empPassword">Password</label>
+            <input type="password" id="empPassword" class="form-input" placeholder="Minimum 6 characters" />
+            <span style="font-size:11px;color:var(--text-dim);margin-top:4px">Leave blank to keep current password (edit
+              mode)</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="modal.close('empModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="empSubmitBtn">Add Employee</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirm Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header">
+        <div class="modal-title">Confirm Delete</div>
+        <button class="modal-close" onclick="modal.close('deleteModal')">✕</button>
+      </div>
+      <p style="color:var(--text-muted);font-size:14px">Are you sure you want to delete <strong
+          id="deleteEmpName"></strong>? This action cannot be undone.</p>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="modal.close('deleteModal')">Cancel</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/utils.js"></script>
+  <script src="../js/admin/employees.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Nizan Tech Admin</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../css/globals.css" />
+  <link rel="stylesheet" href="../css/sidebar.css" />
+  <link rel="stylesheet" href="../css/admin.css" />
+</head>
+
+<body>
+  <!-- Mobile topbar -->
+  <div class="mobile-topbar">
+    <button class="hamburger" id="hamburger">☰</button>
+    <span class="mobile-logo">Nizan Tech</span>
+    <div style="width:40px"></div>
+  </div>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon" style="background: none; padding: 0;">
+          <img src="/assets/sidebar-logo.png" alt="Nizan logo" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
+        <div class="sidebar-logo-text">
+          <span class="sidebar-logo-name">Nizan Tech</span>
+          <span class="sidebar-logo-sub">Admin Panel</span>
+        </div>
+      </div>
+
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebarAvatar" style="background:#6C63FF">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarUserName">Admin</div>
+          <span class="sidebar-user-role role-admin" id="sidebarUserRole">admin</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Overview</div>
+        <a href="dashboard.html" class="nav-item" data-nav="dashboard">
+          <span class="nav-icon">📊</span><span>Dashboard</span>
+        </a>
+
+        <div class="nav-section-label">Management</div>
+        <a href="employees.html" class="nav-item" data-nav="employees">
+          <span class="nav-icon">👥</span><span>Employees</span>
+        </a>
+        <a href="sprints.html" class="nav-item" data-nav="sprints">
+          <span class="nav-icon">🗂️</span><span>Sprints</span>
+        </a>
+
+        <div class="nav-section-label">Monitoring</div>
+        <a href="analytics.html" class="nav-item" data-nav="analytics">
+          <span class="nav-icon">📊</span><span>Analytics</span>
+        </a>
+        <a href="monitor.html" class="nav-item" data-nav="monitor">
+          <span class="nav-icon">📡</span><span>Live Monitor</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="theme-toggle" id="themeToggle">
+          <span class="nav-icon">🌙</span>
+          <span>Dark Mode</span>
+          <div class="toggle-switch"></div>
+        </div>
+        <button class="nav-item" id="logoutBtn">
+          <span class="nav-icon">🚪</span><span>Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+      <div class="page-content">
+        <div class="page-header">
+          <div class="page-header-row">
+            <div>
+              <h1 class="page-title">Dashboard</h1>
+              <p class="page-subtitle" id="welcomeMsg">Good morning, Admin 👋</p>
+            </div>
+            <div style="display:flex;gap:10px">
+              <a href="sprints.html" class="btn btn-primary"><span>➕</span> New Sprint</a>
+              <a href="employees.html" class="btn btn-ghost"><span>👤</span> Add Employee</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card violet animate-in">
+            <div class="stat-label">Total Employees</div>
+            <div class="stat-value text-primary" id="statEmployees">—</div>
+            <div style="font-size:12px;color:var(--text-muted)">Active members</div>
+            <div class="stat-icon">👥</div>
+          </div>
+          <div class="stat-card teal animate-in" style="animation-delay:0.1s">
+            <div class="stat-label">Active Sprints</div>
+            <div class="stat-value text-accent" id="statActiveSprints">—</div>
+            <div style="font-size:12px;color:var(--text-muted)">Currently running</div>
+            <div class="stat-icon">🚀</div>
+          </div>
+          <div class="stat-card orange animate-in" style="animation-delay:0.2s">
+            <div class="stat-label">Hours Today</div>
+            <div class="stat-value text-warning" id="statHoursToday">—</div>
+            <div style="font-size:12px;color:var(--text-muted)">Across all employees</div>
+            <div class="stat-icon">⏱️</div>
+          </div>
+          <div class="stat-card red animate-in" style="animation-delay:0.3s">
+            <div class="stat-label">Total Sprints</div>
+            <div class="stat-value text-danger" id="statTotalSprints">—</div>
+            <div style="font-size:12px;color:var(--text-muted)">All time</div>
+            <div class="stat-icon">📋</div>
+          </div>
+        </div>
+
+        <!-- Recent Activity + Quick Links -->
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start">
+          <div class="card animate-in" style="animation-delay:0.4s">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+              <h2 style="font-size:16px;font-weight:700">Live Activity Feed</h2>
+              <div class="live-badge">
+                <div class="live-dot"></div> Live
+              </div>
+            </div>
+            <div class="activity-feed" id="activityFeed">
+              <div class="empty-state" style="padding:30px 0">
+                <div class="icon">📭</div>
+                <p>No recent activity</p>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="card animate-in" style="animation-delay:0.5s">
+              <h2 style="font-size:15px;font-weight:700;margin-bottom:14px">Quick Actions</h2>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <a href="employees.html" class="btn btn-primary" style="justify-content:center">👤 Add Employee</a>
+                <a href="sprints.html" class="btn btn-accent" style="justify-content:center">🗂️ Create Sprint</a>
+                <a href="monitor.html" class="btn btn-ghost" style="justify-content:center">📡 View Monitor</a>
+              </div>
+            </div>
+
+            <div class="card animate-in" style="animation-delay:0.6s">
+              <h2 style="font-size:15px;font-weight:700;margin-bottom:14px">Recent Sprints</h2>
+              <div id="recentSprints">
+                <div class="spinner" style="margin:0 auto"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/socket.js"></script>
+  <script src="../js/admin/dashboard.js"></script>
+</body>
+
+</html>

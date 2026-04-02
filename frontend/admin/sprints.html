@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sprints — Nizan Tech Admin</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../css/globals.css" />
+  <link rel="stylesheet" href="../css/sidebar.css" />
+  <link rel="stylesheet" href="../css/admin.css" />
+  <style>
+    /* ── Method Picker ── */
+    .method-picker {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 4px;
+    }
+
+    .method-card {
+      flex: 1;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 14px;
+      cursor: pointer;
+      text-align: center;
+      transition: all .2s;
+      background: var(--surface);
+    }
+
+    .method-card:hover {
+      border-color: var(--primary);
+      background: var(--surface-2);
+    }
+
+    .method-card.selected {
+      border-color: var(--primary);
+      background: rgba(108, 99, 255, .1);
+    }
+
+    .method-card .mc-icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .method-card .mc-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .method-card .mc-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* ── Day Plan Table ── */
+    .plan-table-wrap {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-top: 4px;
+    }
+
+    .plan-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .plan-table th {
+      background: var(--surface-2);
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 9px 10px;
+      text-align: left;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .plan-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border-dim);
+      vertical-align: middle;
+    }
+
+    .plan-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .plan-table tr:hover td {
+      background: var(--surface-2);
+    }
+
+    .plan-table input,
+    .plan-table select,
+    .plan-table textarea {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 12px;
+      padding: 4px 6px;
+      width: 100%;
+      transition: border-color .15s;
+      font-family: inherit;
+      resize: none;
+    }
+
+    .plan-table input:focus,
+    .plan-table select:focus,
+    .plan-table textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: var(--surface);
+    }
+
+    .plan-table select option {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .day-num-cell {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 11px;
+      white-space: nowrap;
+      min-width: 56px;
+    }
+
+    /* ── Sprint Detail Modal (days view) ── */
+    .sprint-detail-modal {
+      max-width: 900px;
+      width: 95vw;
+    }
+
+    .detail-table-wrap {
+      max-height: 480px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    .detail-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .detail-table th {
+      background: var(--surface-2);
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 10px 12px;
+      text-align: left;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .detail-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-dim);
+      vertical-align: top;
+    }
+
+    .detail-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .detail-table tr:hover td {
+      background: rgba(108, 99, 255, .04);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .status-pending {
+      background: rgba(255, 179, 71, .15);
+      color: #FFB347;
+    }
+
+    .status-in-progress {
+      background: rgba(108, 99, 255, .2);
+      color: #8B82FF;
+    }
+
+    .status-done {
+      background: rgba(0, 212, 170, .15);
+      color: #00D4AA;
+    }
+
+    /* editable cell in detail table */
+    .editable-cell {
+      position: relative;
+    }
+
+    .editable-cell input,
+    .editable-cell textarea,
+    .editable-cell select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 12px;
+      padding: 4px 8px;
+      width: 100%;
+      font-family: inherit;
+      resize: none;
+    }
+
+    .editable-cell input:focus,
+    .editable-cell textarea:focus,
+    .editable-cell select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .save-day-btn {
+      font-size: 11px;
+      padding: 3px 10px;
+      margin-top: 4px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: none;
+    }
+
+    .save-day-btn.visible {
+      display: inline-block;
+    }
+
+    .grant-edit-btn {
+      font-size: 11px;
+      padding: 3px 8px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      cursor: pointer;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .grant-edit-btn.granted {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* Grant Edit Modal */
+    .grant-modal {
+      max-width: 400px;
+    }
+
+    .emp-check-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .emp-check-row input[type=checkbox] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--primary);
+    }
+
+    /* Paste Area */
+    .paste-zone {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      background: var(--surface);
+      transition: border-color .2s;
+    }
+
+    .paste-zone:focus-within {
+      border-color: var(--primary);
+    }
+
+    .paste-zone-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .paste-zone-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .paste-zone textarea {
+      width: 100%;
+      min-height: 90px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 12px;
+      padding: 8px 10px;
+      font-family: monospace;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+
+    .paste-zone textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .paste-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .paste-cols {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .paste-col-tag {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: var(--surface-2);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      font-family: monospace;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="mobile-topbar">
+    <button class="hamburger" id="hamburger">☰</button>
+    <span class="mobile-logo">Nizan Tech</span>
+    <div style="width:40px"></div>
+  </div>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon" style="background: none; padding: 0;">
+          <img src="/assets/sidebar-logo.png" alt="Nizan logo" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
+        <div class="sidebar-logo-text">
+          <span class="sidebar-logo-name">Nizan Tech</span>
+          <span class="sidebar-logo-sub">Admin Panel</span>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebarAvatar" style="background:#6C63FF">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarUserName">Admin</div>
+          <span class="sidebar-user-role role-admin" id="sidebarUserRole">admin</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Overview</div>
+        <a href="dashboard.html" class="nav-item" data-nav="dashboard"><span
+            class="nav-icon">📊</span><span>Dashboard</span></a>
+        <div class="nav-section-label">Management</div>
+        <a href="employees.html" class="nav-item" data-nav="employees"><span
+            class="nav-icon">👥</span><span>Employees</span></a>
+        <a href="sprints.html" class="nav-item" data-nav="sprints"><span
+            class="nav-icon">🗂️</span><span>Sprints</span></a>
+        <div class="nav-section-label">Monitoring</div>
+        <a href="analytics.html" class="nav-item" data-nav="analytics"><span
+            class="nav-icon">📊</span><span>Analytics</span></a>
+        <a href="monitor.html" class="nav-item" data-nav="monitor"><span class="nav-icon">📡</span><span>Live
+            Monitor</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="theme-toggle" id="themeToggle"><span class="nav-icon">🌙</span><span>Dark Mode</span>
+          <div class="toggle-switch"></div>
+        </div>
+        <button class="nav-item" id="logoutBtn"><span class="nav-icon">🚪</span><span>Logout</span></button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-content">
+        <div class="page-header">
+          <div class="page-header-row">
+            <div>
+              <h1 class="page-title">Sprints</h1>
+              <p class="page-subtitle">Create, manage and assign sprints to employees</p>
+            </div>
+            <button class="btn btn-primary" id="createSprintBtn">🗂️ Create Sprint</button>
+          </div>
+        </div>
+
+        <!-- Filter -->
+        <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm filter-btn active" data-filter="all">All</button>
+          <button class="btn btn-ghost btn-sm filter-btn" data-filter="active">🟢 Active</button>
+          <button class="btn btn-ghost btn-sm filter-btn" data-filter="upcoming">🔵 Upcoming</button>
+          <button class="btn btn-ghost btn-sm filter-btn" data-filter="completed">⚫ Completed</button>
+        </div>
+
+        <div class="sprints-grid" id="sprintsGrid">
+          <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)">
+            <div class="spinner" style="margin:0 auto 12px"></div>Loading sprints...
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- STEP 1: Method Picker Modal -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="methodPickerModal">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-header">
+        <div class="modal-title">Create Sprint</div>
+        <button class="modal-close" onclick="modal.close('methodPickerModal')">✕</button>
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Choose how you want to plan this sprint:</p>
+      <div class="method-picker">
+        <div class="method-card" id="mcQuick" onclick="selectMethod('quick')">
+          <div class="mc-icon">⚡</div>
+          <div class="mc-title">Quick Sprint</div>
+          <div class="mc-sub">Set dates only — weekdays auto-generated. Great for simple time tracking.</div>
+        </div>
+        <div class="method-card" id="mcDetailed" onclick="selectMethod('detailed')">
+          <div class="mc-icon">📋</div>
+          <div class="mc-title">Detailed Plan</div>
+          <div class="mc-sub">Day-by-day plan like a Google Sheet. Assign modules, tasks & notes per day.</div>
+        </div>
+      </div>
+      <div class="modal-footer" style="margin-top:20px">
+        <button class="btn btn-ghost" onclick="modal.close('methodPickerModal')">Cancel</button>
+        <button class="btn btn-primary" id="methodNextBtn" onclick="proceedToForm()">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- STEP 2A: Quick Sprint Modal -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="sprintModal">
+    <div class="modal" style="max-width:520px">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="sprintModalTitle">Quick Sprint</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:2px">Days are auto-generated (weekdays only)
+          </div>
+        </div>
+        <button class="modal-close" onclick="modal.close('sprintModal')">✕</button>
+      </div>
+      <form id="sprintForm">
+        <input type="hidden" id="sprintId" />
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="form-group">
+            <label class="form-label">Sprint Name</label>
+            <input type="text" id="sprintName" class="form-input" placeholder="e.g. April Sprint 2026" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea id="sprintDesc" class="form-input" rows="2" placeholder="What is this sprint about?"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Start Date</label>
+              <input type="date" id="sprintStart" class="form-input" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">End Date</label>
+              <input type="date" id="sprintEnd" class="form-input" required />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="modal.close('sprintModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="sprintSubmitBtn">Create Sprint</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- STEP 2B: Detailed Plan Modal -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="detailedModal">
+    <div class="modal" style="max-width:900px;width:95vw">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="detailedModalTitle">📋 Detailed Sprint Plan</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:2px" id="detailedModalSub">Fill in day-by-day
+            tasks — employees will see this as their roadmap</div>
+        </div>
+        <button class="modal-close" onclick="closeDetailedModal()">✕</button>
+      </div>
+
+      <form id="detailedForm">
+        <!-- Top fields row 1: name + dates -->
+        <div
+          style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:12px;margin-bottom:12px;align-items:end">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Sprint Name *</label>
+            <input type="text" id="dSprintName" class="form-input" placeholder="e.g. Traveezy 30-Day Plan" required />
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Start Date *</label>
+            <input type="date" id="dStartDate" class="form-input" required onchange="onStartDateChange()" />
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">End Date</label>
+            <input type="date" id="dEndDate" class="form-input" onchange="onEndDateChange()" />
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Total Days *</label>
+            <input type="number" id="dTotalDays" class="form-input" min="1" max="365" placeholder="e.g. 30" required
+              onchange="onTotalDaysChange()" />
+          </div>
+          <button type="button" class="btn btn-accent btn-sm" id="genTableBtn" onclick="generatePlanTable()"
+            style="white-space:nowrap;align-self:end">⚡ Generate</button>
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Description</label>
+          <textarea id="dDesc" class="form-input" rows="2" placeholder="What is this sprint about?"></textarea>
+        </div>
+
+        <!-- Paste from Spreadsheet -->
+        <div class="paste-zone" id="pasteZone" style="margin-bottom:14px">
+          <div class="paste-zone-header">
+            <div class="paste-zone-title">📋 Paste from Google Sheets / Excel</div>
+            <div style="display:flex;gap:8px">
+              <button type="button" class="btn btn-ghost btn-sm" onclick="clearPasteArea()">🗑️ Clear</button>
+              <button type="button" class="btn btn-accent btn-sm" onclick="parsePastedData()">⚡ Import Data</button>
+            </div>
+          </div>
+          <div class="paste-cols">
+            <span class="paste-col-tag">Module</span>
+            <span style="font-size:10px;color:var(--text-dim)">→</span>
+            <span class="paste-col-tag">Tasks</span>
+            <span style="font-size:10px;color:var(--text-dim)">→</span>
+            <span class="paste-col-tag">Status</span>
+            <span style="font-size:10px;color:var(--text-dim)">→</span>
+            <span class="paste-col-tag">Notes</span>
+            <span style="font-size:11px;color:var(--text-muted);margin-left:4px">(columns in order)</span>
+          </div>
+          <textarea id="pasteInput" placeholder="Copy rows from Google Sheets or Excel and paste here (Ctrl+V)…
+Each row = one day. Columns: Module | Tasks | Status | Notes"></textarea>
+          <div class="paste-hint">💡 Select & copy rows from your spreadsheet, paste here, then click <strong>Import
+              Data</strong>. Status accepts: pending / in-progress / done</div>
+        </div>
+
+        <!-- Dynamic table -->
+        <div class="plan-table-wrap" id="planTableWrap" style="display:none">
+          <table class="plan-table">
+            <thead>
+              <tr>
+                <th style="width:90px">Day</th>
+                <th style="width:130px">Module</th>
+                <th>Tasks</th>
+                <th style="width:120px">Status</th>
+                <th style="width:120px">Notes</th>
+              </tr>
+            </thead>
+            <tbody id="planTableBody"></tbody>
+          </table>
+        </div>
+        <div id="planEmptyHint" style="text-align:center;padding:30px 0;color:var(--text-muted);font-size:13px">
+          Set dates or total days, then click <strong>⚡ Generate</strong> to start planning. Or <strong>paste
+            data</strong> from a spreadsheet above.
+        </div>
+
+        <div class="modal-footer" style="margin-top:16px">
+          <button type="button" class="btn btn-ghost" onclick="closeDetailedModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="detailedSubmitBtn">💾 Save Sprint Plan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- Sprint Detail / Edit Days Modal -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="sprintDetailModal">
+    <div class="modal" style="max-width:1050px;width:95vw">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:20px;flex:1">
+          <div>
+            <div class="modal-title" id="detailModalTitle">Sprint Plan</div>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:2px" id="detailModalSub"></div>
+          </div>
+          <button class="btn btn-ghost btn-sm"
+            style="color:var(--danger);margin-left:auto;margin-right:20px;display:flex;align-items:center;gap:6px"
+            onclick="stopAllEditPermissions()">
+            🛑 Stop All Employee Edits
+          </button>
+        </div>
+        <button class="modal-close" onclick="modal.close('sprintDetailModal')">✕</button>
+      </div>
+
+      <div id="detailLoadingState" style="text-align:center;padding:40px">
+        <div class="spinner" style="margin:0 auto 12px"></div>Loading plan...
+      </div>
+
+      <div id="detailTableContainer" style="display:none">
+        <div class="detail-table-wrap">
+          <table class="detail-table">
+            <thead>
+              <tr>
+                <th style="width:90px">Day</th>
+                <th style="width:90px">Date</th>
+                <th style="width:130px">Module</th>
+                <th>Tasks</th>
+                <th style="width:110px">Status</th>
+                <th>Notes</th>
+                <th style="width:110px">Edit Access</th>
+              </tr>
+            </thead>
+            <tbody id="detailTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="modal.close('sprintDetailModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- Grant Edit Permission Modal -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="grantEditModal">
+    <div class="modal grant-modal" style="max-width:400px">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">🔓 Grant Edit Access</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px" id="grantDayLabel"></div>
+        </div>
+        <button class="modal-close" onclick="modal.close('grantEditModal')">✕</button>
+      </div>
+      <div id="grantEmpList" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto"></div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="modal.close('grantEditModal')">Cancel</button>
+        <button class="btn btn-primary" id="grantSaveBtn" onclick="saveGrantEdit()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assign Sprint Modal -->
+  <div class="modal-overlay" id="assignModal">
+    <div class="modal" style="max-width:460px">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Assign Sprint</div>
+          <div class="modal-subtitle" id="assignSprintName" style="font-size:13px;color:var(--text-muted)"></div>
+        </div>
+        <button class="modal-close" onclick="modal.close('assignModal')">✕</button>
+      </div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Select employees to assign to this sprint:
+      </div>
+      <div id="assignEmployeeList" style="display:flex;flex-direction:column;gap:10px;max-height:280px;overflow-y:auto">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="modal.close('assignModal')">Cancel</button>
+        <button class="btn btn-primary" id="assignSubmitBtn">Save Assignment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Sprint Modal -->
+  <div class="modal-overlay" id="deleteSprintModal">
+    <div class="modal" style="max-width:380px">
+      <div class="modal-header">
+        <div class="modal-title">Delete Sprint</div>
+        <button class="modal-close" onclick="modal.close('deleteSprintModal')">✕</button>
+      </div>
+      <p style="color:var(--text-muted);font-size:14px">Delete <strong id="deleteSprintName"></strong>? All days and
+        time blocks will be permanently removed.</p>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="modal.close('deleteSprintModal')">Cancel</button>
+        <button class="btn btn-danger" id="confirmDeleteSprintBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="../js/utils.js"></script>
+  <script src="../js/admin/sprints.js"></script>
+</body>
+
+</html>
