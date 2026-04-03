@@ -4,7 +4,7 @@
 let socket = null;
 
 const initSocket = (userId, role) => {
-  socket = io();
+  socket = io('https://nizan-tech.onrender.com');
 
   socket.on('connect', () => {
     console.log('🔌 Socket connected');
