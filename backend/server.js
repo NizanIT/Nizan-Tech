@@ -7,6 +7,10 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 
 const app = express();
+
+// 🛡️ Required for Render/Vercel (behind proxy) to handle HTTPS correctly
+app.set('trust proxy', 1);
+
 const allowedOrigins = [
   'https://nizan-tech.vercel.app',
   'https://nizan-tech.onrender.com',
