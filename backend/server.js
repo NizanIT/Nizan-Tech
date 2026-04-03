@@ -67,7 +67,7 @@ app.use('/api/timeblock', require('./routes/timeblock'));
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
-// 🔍 Connection Test Route (To verify MongoDB Atlas connection)
+// 🔍 Connection Test Route (To verify MongoDB Atlas -> Render connection)
 app.get('/api/test-db', async (req, res) => {
   try {
     const status = mongoose.connection.readyState === 1 ? 'Healthy ✅' : 'Disconnected ❌';
@@ -75,6 +75,7 @@ app.get('/api/test-db', async (req, res) => {
       success: true, 
       database: status, 
       env: process.env.NODE_ENV,
+      mongodb_host: mongoose.connection.host,
       time: new Date() 
     });
   } catch (err) {
@@ -105,10 +106,41 @@ io.on('connection', (socket) => {
 
 // 🛡️ Global Error Handler
 app.use((err, req, res, next) => {
-  console.error('❌ Server Error:', err.message);
-  res.status(err.status || 500).json({
+  let error = { ...err };
+  error.message = err.message;
+
+  // Log for Admin/Dev (Render Logs)
+  console.error(`[${new Date().toISOString()}] ❌ Error: ${err.message}`);
+
+  // Mongoose Bad ObjectId (Cast Error)
+  if (err.name === 'CastError') {
+    const message = `Resource not found with id of ${err.value}`;
+    error = { message, status: 404 };
+  }
+
+  // Mongoose Duplicate Key
+  if (err.code === 11000) {
+    const message = 'Duplicate field value entered';
+    error = { message, status: 400 };
+  }
+
+  // Mongoose Validation Error
+  if (err.name === 'ValidationError') {
+    const message = Object.values(err.errors).map(val => val.message);
+    error = { message, status: 400 };
+  }
+
+  // JWT Errors
+  if (err.name === 'JsonWebTokenError') {
+    error = { message: 'Invalid token. Please log in again.', status: 401 };
+  }
+  if (err.name === 'TokenExpiredError') {
+    error = { message: 'Your session has expired. Please log in again.', status: 401 };
+  }
+
+  res.status(error.status || 500).json({
     success: false,
-    message: err.message || 'An unexpected server error occurred.',
+    message: error.message || 'Server Error',
     path: req.url
   });
 });

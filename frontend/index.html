@@ -144,7 +144,16 @@
           window.location.href = role === 'admin' ? '/admin/dashboard.html' : '/employee/dashboard.html';
         }, 600);
       } catch (err) {
-        errorEl.textContent = err.message;
+        console.error('❌ Login Error Details:', err);
+        // Specifically handle the "Unexpected token" error for better user feedback
+        if (err.message.includes('Unexpected token')) {
+          errorEl.textContent = 'Server is waking up (Render Free Tier). Please wait 30 seconds and try again.';
+          toast.error('The server returned an invalid response. It might still be waking up. Please wait.');
+        } else {
+          errorEl.textContent = err.message || 'Invalid email or password';
+          toast.error(err.message || 'Invalid email or password');
+        }
+        
         errorEl.classList.add('show');
         btnText.style.display = 'inline';
         spinner.style.display = 'none';

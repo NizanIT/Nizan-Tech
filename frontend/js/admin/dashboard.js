@@ -18,11 +18,19 @@
   // Load stats
   try {
     const { data } = await api.get('/admin/stats');
-    document.getElementById('statEmployees').textContent = data.totalEmployees;
-    document.getElementById('statActiveSprints').textContent = data.activeSprints;
-    document.getElementById('statHoursToday').textContent = `${data.hoursLoggedToday}h`;
-    document.getElementById('statTotalSprints').textContent = data.totalSprints;
-  } catch (e) { toast.error('Failed to load stats'); }
+    if (data) {
+      document.getElementById('statEmployees').textContent = data.totalEmployees;
+      document.getElementById('statActiveSprints').textContent = data.activeSprints;
+      document.getElementById('statHoursToday').textContent = `${data.hoursLoggedToday}h`;
+      document.getElementById('statTotalSprints').textContent = data.totalSprints;
+    }
+  } catch (e) { 
+    console.error('Stats load failed:', e);
+    // UI Feedback for load failure
+    ['statEmployees', 'statActiveSprints', 'statHoursToday', 'statTotalSprints'].forEach(id => {
+      document.getElementById(id).innerHTML = '<span title="Unable to load" style="color:var(--danger);cursor:help">⚠️</span>';
+    });
+  }
 
   // Load recent sprints
   try {
@@ -38,7 +46,9 @@
         <span class="badge badge-${s.status}">${s.status}</span>
       </div>
     `).join('');
-  } catch {}
+  } catch (e) {
+    document.getElementById('recentSprints').innerHTML = '<p style="font-size:12px;color:var(--danger)">⚠️ Error connecting to server</p>';
+  }
 
   // Activity feed
   const feed = document.getElementById('activityFeed');

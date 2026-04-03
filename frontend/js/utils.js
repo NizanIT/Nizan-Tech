@@ -20,13 +20,32 @@ const api = {
     try {
       const res = await fetch(`${API_BASE}${endpoint}`, opts);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || `Request failed with status ${res.status}`);
+      
+      if (!res.ok) {
+        // Handle Session Expired
+        if (res.status === 401 || res.status === 403) {
+          toast.error('Session expired. Redirecting to login...');
+          setTimeout(() => window.location.href = '/index.html', 1500);
+          return null;
+        }
+        
+        // Handle Render Sleep
+        if (res.status === 503 || res.status === 502) {
+          toast.info('The server is waking up. Please wait 30 seconds and try again.');
+          throw new Error('Server is currently starting up.');
+        }
+
+        throw new Error(data.message || `Request failed with status ${res.status}`);
+      }
       return data;
     } catch (err) {
       console.error(`❌ API Error [${method} ${endpoint}]:`, err.message);
-      // Better error message for "Unexpected token" issues (common with Render/Vercel)
+      
+      // Specifically handle the "Unexpected token" error for better user feedback
       if (err.message.includes('Unexpected token')) {
-        toast.error('The server returned an invalid response. It might still be waking up on Render. Please wait 30 seconds and try again.');
+        toast.error('The server response was invalid. It might still be waking up. Please wait 30 seconds.');
+      } else if (err.message === 'Failed to fetch') {
+        toast.error('Network Error: Please check your internet or if the server is live.');
       } else {
         toast.error(err.message);
       }

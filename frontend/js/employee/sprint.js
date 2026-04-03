@@ -41,13 +41,29 @@ const viewModes = {};
 })();
 
 async function loadSprints() {
+  const container = document.getElementById('sprintContainer');
   try {
     const { data } = await api.get('/employee/sprint');
     allSprints = data;
     renderSprints(data);
   } catch (err) {
-    document.getElementById('sprintContainer').innerHTML = `
-      <div class="empty-state"><div class="icon">🗂️</div><h3>No Sprint Assigned</h3><p>Your admin hasn't assigned a sprint yet. Check back soon!</p></div>`;
+    console.error('Sprint load failed:', err);
+    if (err.message.includes('Unexpected token') || err.message.includes('Failed to fetch')) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="icon" style="color:var(--danger)">⚠️</div>
+          <h3>Connection Error</h3>
+          <p>The server is taking too long to respond. It might be waking up. Please wait 30 seconds and refresh.</p>
+          <button class="btn btn-ghost" onclick="loadSprints()" style="margin-top:15px">🔄 Retry Connection</button>
+        </div>`;
+    } else {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">🗂️</div>
+          <h3>No Sprint Assigned</h3>
+          <p>Your admin hasn't assigned a sprint yet. Check back soon!</p>
+        </div>`;
+    }
   }
 }
 
