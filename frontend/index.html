@@ -9,6 +9,7 @@
   <link rel="apple-touch-icon" href="assets/favicon.png">
   <link rel="stylesheet" href="css/globals.css" />
   <link rel="stylesheet" href="css/login.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -138,36 +139,72 @@
 
       try {
         const data = await api.post('/auth/login', { email, password });
-        const role = data.user.role;
-        toast.success(`Welcome back, ${data.user.name}!`);
-        setTimeout(() => {
-          window.location.href = role === 'admin' ? '/admin/dashboard.html' : '/employee/dashboard.html';
-        }, 600);
-      } catch (err) {
-        console.error('❌ Login Error Details:', err);
-        // Specifically handle the "Unexpected token" error for better user feedback
-        if (err.message.includes('Unexpected token')) {
-          errorEl.textContent = 'Server is waking up (Render Free Tier). Please wait 30 seconds and try again.';
-          toast.error('The server returned an invalid response. It might still be waking up. Please wait.');
-        } else {
-          errorEl.textContent = err.message || 'Invalid email or password';
-          toast.error(err.message || 'Invalid email or password');
+        if (!data || !data.user) {
+          btnText.style.display = 'inline';
+          spinner.style.display = 'none';
+          btn.disabled = false;
+          return;
         }
         
-        errorEl.classList.add('show');
+        const role = data.user.role;
+        // SweetAlert Success
+        Swal.fire({
+          icon: 'success',
+          title: 'Welcome Back!',
+          text: `Signing you in as ${data.user.name}...`,
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          background: 'var(--surface-1)',
+          color: 'var(--text-main)',
+          iconColor: 'var(--accent)'
+        });
+
+        setTimeout(() => {
+          window.location.href = role === 'admin' ? '/admin/dashboard.html' : '/employee/dashboard.html';
+        }, 1600);
+      } catch (err) {
+        console.error('❌ Login Error Details:', err);
+        
         btnText.style.display = 'inline';
         spinner.style.display = 'none';
         btn.disabled = false;
+
+        if (err.message.includes('Unexpected token') || err.message.includes('starting up')) {
+          Swal.fire({
+            icon: 'info',
+            title: 'Server Waking Up',
+            text: 'Your workspace is on a free-tier server. It can take 30-60 seconds to "wake up" after inactivity. Please wait and try again.',
+            background: 'var(--surface-1)',
+            color: 'var(--text-main)',
+            confirmButtonColor: 'var(--primary)'
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Access Denied',
+            text: err.message || 'Invalid email or password. Please try again.',
+            background: 'var(--surface-1)',
+            color: 'var(--text-main)',
+            confirmButtonColor: 'var(--danger)'
+          });
+        }
       }
     });
 
     // Already logged in?
     (async () => {
+      // 🛡️ Bypass redirect if "logout=true" is in URL (for testing/fixing loops)
+      if (window.location.search.includes('logout=true')) return;
+
       try {
-        const data = await api.get('/auth/me');
-        const role = data.user.role;
-        window.location.href = role === 'admin' ? '/admin/dashboard.html' : '/employee/dashboard.html';
-      } catch { /* not logged in */ }
+        // 🛡️ Use silent mode to prevent error toasts during initial check
+        const data = await api.get('/auth/me', true);
+        if (data && data.user) {
+          const role = data.user.role;
+          window.location.href = role === 'admin' ? '/admin/dashboard.html' : '/employee/dashboard.html';
+        }
+      } catch { /* not logged in - stay on login page silently */ }
     })();
   </script>
 </body>

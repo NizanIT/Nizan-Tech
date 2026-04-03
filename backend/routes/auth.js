@@ -21,10 +21,12 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
+    const isProd = process.env.NODE_ENV === 'production';
     res.cookie('token', token, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      path: '/', // 🌐 Global scope
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
@@ -45,9 +47,17 @@ router.post('/login', async (req, res) => {
 
 // POST /api/auth/logout
 router.post('/logout', (req, res) => {
-  res.cookie('token', '', { maxAge: 0 });
+  const isProd = process.env.NODE_ENV === 'production';
+  res.cookie('token', '', {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
+    path: '/',
+    maxAge: 0
+  });
   res.json({ success: true, message: 'Logged out.' });
 });
+
 
 // GET /api/auth/me
 router.get('/me', protect, (req, res) => {

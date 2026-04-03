@@ -1,5 +1,7 @@
 // ─── CONFIG ───────────────────────────────────────────────
-const API_BASE = 'https://nizan-tech.onrender.com/api';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? '/api' 
+  : 'https://nizan-tech.onrender.com/api';
 
 const escHtml = (str) => {
   if (!str) return '';
@@ -10,7 +12,7 @@ const escHtml = (str) => {
 
 // ─── API HELPER ───────────────────────────────────────────
 const api = {
-  async request(method, endpoint, body = null) {
+  async request(method, endpoint, body = null, silent = false) {
     const opts = {
       method,
       credentials: 'include',
@@ -24,42 +26,43 @@ const api = {
       if (!res.ok) {
         // Handle Session Expired
         if (res.status === 401 || res.status === 403) {
-          // Only redirect if NOT already on the login page to avoid loops
           const isLoginPage = window.location.pathname === '/' || window.location.pathname.includes('index.html');
-          if (!isLoginPage) {
+          if (!isLoginPage && !silent) {
             toast.error('Session expired. Redirecting to login...');
             setTimeout(() => window.location.href = '/index.html', 1500);
+            return null;
           }
-          return null;
+          throw new Error(data.message || 'Invalid email or password');
         }
         
         // Handle Render Sleep
-        if (res.status === 503 || res.status === 502) {
+        if ((res.status === 503 || res.status === 502) && !silent) {
           toast.info('The server is waking up. Please wait 30 seconds and try again.');
           throw new Error('Server is currently starting up.');
         }
 
+        if (!silent) toast.error(data.message || `Request failed: ${res.status}`);
         throw new Error(data.message || `Request failed with status ${res.status}`);
       }
       return data;
     } catch (err) {
-      console.error(`❌ API Error [${method} ${endpoint}]:`, err.message);
-      
-      // Specifically handle the "Unexpected token" error for better user feedback
-      if (err.message.includes('Unexpected token')) {
-        toast.error('The server response was invalid. It might still be waking up. Please wait 30 seconds.');
-      } else if (err.message === 'Failed to fetch') {
-        toast.error('Network Error: Please check your internet or if the server is live.');
-      } else {
-        toast.error(err.message);
+      if (!silent) {
+        console.error(`❌ API Error [${method} ${endpoint}]:`, err.message);
+        if (err.message.includes('Unexpected token')) {
+          toast.error('Server response invalid. Waking up? Wait 30s.');
+        } else if (err.message === 'Failed to fetch') {
+          toast.error('Network Error: Please check your internet.');
+        } else {
+          toast.error(err.message);
+        }
       }
       throw err;
     }
   },
-  get: (ep) => api.request('GET', ep),
-  post: (ep, body) => api.request('POST', ep, body),
-  put: (ep, body) => api.request('PUT', ep, body),
-  del: (ep) => api.request('DELETE', ep),
+  get: (ep, silent = false) => api.request('GET', ep, null, silent),
+  post: (ep, body, silent = false) => api.request('POST', ep, body, silent),
+  put: (ep, body, silent = false) => api.request('PUT', ep, body, silent),
+  del: (ep, silent = false) => api.request('DELETE', ep, null, silent),
 };
 
 // ─── TIME HELPERS ─────────────────────────────────────────
@@ -209,14 +212,20 @@ const initTheme = () => {
 // ─── AUTH GUARD ───────────────────────────────────────────
 const requireAuth = async (expectedRole) => {
   try {
-    const res = await api.get('/auth/me');
+    // 🛡️ Use silent mode to prevent error toasts during initial check
+    const res = await api.get('/auth/me', true);
     const user = res.user;
+    
     if (expectedRole && user.role !== expectedRole) {
       window.location.href = user.role === 'admin' ? '/admin/dashboard.html' : '/employee/dashboard.html';
       return null;
     }
+
+    // ✅ Success: Reveal the page
+    document.body.classList.remove('auth-loading');
     return user;
   } catch {
+    // ❌ Failure: Redirect to login
     window.location.href = '/index.html';
     return null;
   }

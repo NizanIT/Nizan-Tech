@@ -147,5 +147,8 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  const mode = process.env.NODE_ENV === 'production' ? 'PRODUCTION 🚀' : 'DEVELOPMENT 🛠️';
+  console.log(`****************************************************`);
+  console.log(`🚀 Server running in ${mode} on port ${PORT}`);
+  console.log(`****************************************************`);
 });

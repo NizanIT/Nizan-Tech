@@ -63,6 +63,11 @@ body {
   min-height: 100vh;
   transition: background var(--transition), color var(--transition);
 }
+
+/* 🛡️ Flash Protection: Hidden by default */
+body.auth-loading {
+  display: none !important;
+}
 a { text-decoration: none; color: inherit; }
 button { cursor: pointer; border: none; background: none; font-family: inherit; }
 input, textarea, select { font-family: inherit; }
