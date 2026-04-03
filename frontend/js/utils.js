@@ -1,5 +1,5 @@
 // ─── CONFIG ───────────────────────────────────────────────
-const API_BASE = '/api';
+const API_BASE = 'https://nizan-tech.onrender.com/api';
 
 const escHtml = (str) => {
   if (!str) return '';
@@ -17,10 +17,21 @@ const api = {
       headers: { 'Content-Type': 'application/json' }
     };
     if (body) opts.body = JSON.stringify(body);
-    const res = await fetch(`${API_BASE}${endpoint}`, opts);
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Request failed');
-    return data;
+    try {
+      const res = await fetch(`${API_BASE}${endpoint}`, opts);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || `Request failed with status ${res.status}`);
+      return data;
+    } catch (err) {
+      console.error(`❌ API Error [${method} ${endpoint}]:`, err.message);
+      // Better error message for "Unexpected token" issues (common with Render/Vercel)
+      if (err.message.includes('Unexpected token')) {
+        toast.error('The server returned an invalid response. It might still be waking up on Render. Please wait 30 seconds and try again.');
+      } else {
+        toast.error(err.message);
+      }
+      throw err;
+    }
   },
   get: (ep) => api.request('GET', ep),
   post: (ep, body) => api.request('POST', ep, body),
@@ -72,13 +83,13 @@ const dateUtils = {
   isPast(dateStr) {
     const d = new Date(dateStr);
     const today = new Date();
-    today.setHours(0,0,0,0);
+    today.setHours(0, 0, 0, 0);
     return d < today;
   },
   isFuture(dateStr) {
     const d = new Date(dateStr);
     const today = new Date();
-    today.setHours(0,0,0,0);
+    today.setHours(0, 0, 0, 0);
     return d > today;
   },
   getDayName(dateStr) {
@@ -131,7 +142,7 @@ document.addEventListener('click', e => {
 });
 
 // ─── AVATAR ───────────────────────────────────────────────
-const getInitials = (name) => name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
+const getInitials = (name) => name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
 const renderAvatar = (name, color, size = '') => `
   <div class="avatar ${size}" style="background:${color || '#6C63FF'}">${getInitials(name)}</div>

@@ -27,6 +27,12 @@ app.set('io', io);
 // Connect DB
 connectDB();
 
+// 🔍 Request Logger (To debug Vercel -> Render connection)
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin || 'No Origin'}`);
+  next();
+});
+
 // Middleware
 app.use(cors({ 
   origin: function (origin, callback) {
@@ -79,6 +85,16 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log(`❌ Socket disconnected: ${socket.id}`);
+  });
+});
+
+// 🛡️ Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('❌ Server Error:', err.message);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'An unexpected server error occurred.',
+    path: req.url
   });
 });
 
