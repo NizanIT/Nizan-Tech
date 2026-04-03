@@ -7,10 +7,18 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 
 const app = express();
+const allowedOrigins = [
+  'https://nizan-tech.vercel.app',
+  'https://nizan-tech.onrender.com',
+  'http://localhost:5500',
+  'http://127.0.0.1:5500',
+  'http://localhost:5000'
+];
+
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: { origin: '*', methods: ['GET', 'POST'] }
+  cors: { origin: allowedOrigins, credentials: true, methods: ['GET', 'POST'] }
 });
 
 // Store io in app for route access
@@ -20,11 +28,20 @@ app.set('io', io);
 connectDB();
 
 // Middleware
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors({ 
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('Blocked by CORS:', origin);
+      callback(new Error('Not allowed by CORS'), false);
+    }
+  }, 
+  credentials: true 
+}));
 app.use(express.json());
 app.use(cookieParser());
 
-// 🛡️ BFCache Prevention Middleware
 app.use((req, res, next) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.setHeader('Pragma', 'no-cache');
