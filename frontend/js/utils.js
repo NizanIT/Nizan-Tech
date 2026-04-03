@@ -24,8 +24,12 @@ const api = {
       if (!res.ok) {
         // Handle Session Expired
         if (res.status === 401 || res.status === 403) {
-          toast.error('Session expired. Redirecting to login...');
-          setTimeout(() => window.location.href = '/index.html', 1500);
+          // Only redirect if NOT already on the login page to avoid loops
+          const isLoginPage = window.location.pathname === '/' || window.location.pathname.includes('index.html');
+          if (!isLoginPage) {
+            toast.error('Session expired. Redirecting to login...');
+            setTimeout(() => window.location.href = '/index.html', 1500);
+          }
           return null;
         }
         
