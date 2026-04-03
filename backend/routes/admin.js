@@ -55,20 +55,20 @@ router.post('/timeblock/leave', async (req, res) => {
 
     // Find existing leave block
     const existingLeave = await TimeBlock.findOne({ userId, dayId, isLeave: true });
-    
+
     if (existingLeave) {
       await existingLeave.deleteOne();
-      
+
       const io = req.app.get('io');
       io.to('admin').emit('timeblock:deleted', { blockId: existingLeave._id, userName: 'Admin' });
-      
+
       await Activity.create({ icon: '🔙', text: 'Admin removed leave status for employee', type: 'timeblock' });
       return res.json({ success: true, message: 'Leave removed', isLeave: false });
     }
-    
+
     // Erase any conflicting timeblocks for that exact day
     await TimeBlock.deleteMany({ userId, dayId });
-    
+
     // Create the supercedent Leave card
     const block = await TimeBlock.create({
       userId, sprintId, dayId,
@@ -77,11 +77,11 @@ router.post('/timeblock/leave', async (req, res) => {
       completed: true,
       isLeave: true
     });
-    
+
     const io = req.app.get('io');
     io.to('admin').emit('timeblock:created', { block: { ...block.toJSON(), userName: 'Admin' } });
     await Activity.create({ icon: '🌴', text: 'Admin marked employee on Leave', type: 'timeblock' });
-    
+
     res.status(201).json({ success: true, isLeave: true, data: block });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -149,25 +149,25 @@ router.get('/sprints', async (req, res) => {
       .populate('assignedTo', 'name email avatarColor')
       .populate('createdBy', 'name')
       .sort({ createdAt: -1 });
-      
+
     const sprints = await Promise.all(sprintsQuery.map(async (sprint) => {
       const days = await Day.find({ sprintId: sprint._id });
       const blocks = await TimeBlock.find({ sprintId: sprint._id });
-      
+
       const totalDays = days.length;
       let completedDays = 0;
-      
+
       days.forEach(day => {
         const dayBlocks = blocks.filter(b => b.dayId.equals(day._id));
         if (dayBlocks.length > 0 && dayBlocks.every(b => b.completed === true)) {
           completedDays += 1;
         }
       });
-      
-      return { 
-        ...sprint.toJSON(), 
-        totalDays, 
-        completedDays 
+
+      return {
+        ...sprint.toJSON(),
+        totalDays,
+        completedDays
       };
     }));
 
@@ -206,7 +206,7 @@ router.post('/sprints', async (req, res) => {
         while (current.getDay() === 0) {
           current.setDate(current.getDate() + 1);
         }
-        
+
         days.push({
           sprintId: sprint._id,
           dayNumber: dayIndex++,
@@ -220,11 +220,11 @@ router.post('/sprints', async (req, res) => {
         // Advance physical calendar for the next block
         current.setDate(current.getDate() + 1);
       }
-      
+
       // Physically update the endDate of the sprint to structurally accommodate the Sunday shifting
       sprint.endDate = new Date(current.getTime() - 86400000);
       if (sprint.endDate.getDay() === 0) {
-         sprint.endDate.setDate(sprint.endDate.getDate() - 1);
+        sprint.endDate.setDate(sprint.endDate.getDate() - 1);
       }
       await sprint.save();
       await Day.insertMany(days);
@@ -412,7 +412,7 @@ router.get('/analytics', async (req, res) => {
   try {
     const sprints = await Sprint.find().populate('assignedTo', 'name email avatarColor');
     const employees = await User.find({ role: 'employee' }, 'name email avatarColor');
-    
+
     const days = await Day.find().lean();
 
     const blocks = await TimeBlock.find()
@@ -449,7 +449,7 @@ router.post('/extensions/:id/resolve', async (req, res) => {
     const ext = await ExtensionRequest.findById(req.params.id)
       .populate('userId', 'name')
       .populate('sprintId', 'name');
-      
+
     if (!ext) return res.status(404).json({ success: false, message: 'Extension not found.' });
 
     ext.status = status;
@@ -469,8 +469,8 @@ router.post('/extensions/:id/resolve', async (req, res) => {
       const newDays = [];
       let added = 0;
       let current = new Date(lastDate);
-      
-      while(added < daysToAdd) {
+
+      while (added < daysToAdd) {
         current.setDate(current.getDate() + 1);
         if (current.getDay() !== 0) { // SKIP SUNDAY ONLY
           newDays.push({ sprintId: sprint._id, dayNumber: dayNum++, date: new Date(current) });
@@ -486,16 +486,16 @@ router.post('/extensions/:id/resolve', async (req, res) => {
       if (ext.delayedDayNumber) {
         // Fetch ALL days structurally ordered by DayNumber ascending
         const allDays = await Day.find({ sprintId: sprint._id }).sort({ dayNumber: 1 });
-        
+
         // Identify mathematical insertion point
         const delayStartIndex = allDays.findIndex(d => d.dayNumber === ext.delayedDayNumber);
-        
+
         if (delayStartIndex !== -1) {
           // Traverse backward to physically push all assignments `daysToAdd` indices into the future
           for (let i = allDays.length - 1; i >= delayStartIndex + daysToAdd; i--) {
             const sourceDay = allDays[i - daysToAdd];
             const targetDay = allDays[i];
-            
+
             targetDay.module = sourceDay.module;
             targetDay.tasks = sourceDay.tasks;
             targetDay.plannedStatus = sourceDay.plannedStatus;
@@ -554,7 +554,7 @@ router.post('/plan-requests/:id/resolve', async (req, res) => {
     if (status === 'approved') {
       if (day.pendingModule !== undefined) day.module = day.pendingModule;
       if (day.pendingTasks !== undefined) day.tasks = day.pendingTasks;
-      
+
       await Activity.create({ icon: '✅', text: `Admin approved plan change for Day ${day.dayNumber}`, type: 'sprint' });
     } else {
       await Activity.create({ icon: '❌', text: `Admin rejected plan change for Day ${day.dayNumber}`, type: 'sprint' });

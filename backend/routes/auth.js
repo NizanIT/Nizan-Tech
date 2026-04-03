@@ -21,13 +21,12 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-    // 🛡️ Smarter Production Detection (Render/Vercel support)
     const isProd = process.env.NODE_ENV === 'production' || !!process.env.RENDER;
     
     res.cookie('token', token, {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      secure: true, // 🔌 Proxy is always HTTPS
+      sameSite: 'Lax', // 🏰 Optimized for Same-Origin Proxying
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
@@ -49,11 +48,10 @@ router.post('/login', async (req, res) => {
 
 // POST /api/auth/logout
 router.post('/logout', (req, res) => {
-  const isProd = process.env.NODE_ENV === 'production' || !!process.env.RENDER;
   res.cookie('token', '', {
     httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? 'none' : 'lax',
+    secure: true,
+    sameSite: 'Lax',
     path: '/',
     maxAge: 0
   });

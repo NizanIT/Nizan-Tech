@@ -101,7 +101,7 @@ router.get('/sprint', async (req, res) => {
 
       const totalDays = days.length;
       let completedDays = 0;
-      
+
       days.forEach(day => {
         const dayBlocks = blocks.filter(b => b.dayId.equals(day._id));
         if (dayBlocks.length > 0 && dayBlocks.every(b => b.completed === true)) {
@@ -109,9 +109,9 @@ router.get('/sprint', async (req, res) => {
         }
       });
 
-      return { 
-        ...sprint.toJSON(), 
-        days: daysWithHours, 
+      return {
+        ...sprint.toJSON(),
+        days: daysWithHours,
         totalHours: (totalMinutes / 60).toFixed(1),
         totalDays,
         completedDays
@@ -162,11 +162,11 @@ router.put('/days/:dayId', async (req, res) => {
 
     if (planChanged) {
       day.hasPendingChanges = true;
-      
+
       // Notify Admin
       const io = req.app.get('io');
-      io.to('admin').emit('plan:change-requested', { 
-        userName: req.user.name, 
+      io.to('admin').emit('plan:change-requested', {
+        userName: req.user.name,
         dayId: day._id,
         dayNumber: day.dayNumber
       });

@@ -1,7 +1,6 @@
 // ─── CONFIG ───────────────────────────────────────────────
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? '/api' 
-  : 'https://nizan-tech.onrender.com/api';
+// 🚀 PRODUCTION BEST PRACTICE: Use relative paths for Proxying/Rewriting
+const API_BASE = '/api';
 
 const escHtml = (str) => {
   if (!str) return '';
@@ -225,8 +224,10 @@ const requireAuth = async (expectedRole) => {
     document.body.classList.remove('auth-loading');
     return user;
   } catch {
-    // ❌ Failure: Redirect to login
-    window.location.href = '/index.html';
+    // ❌ Failure: Redirect to login with a small stability delay
+    setTimeout(() => {
+      window.location.href = '/index.html';
+    }, 100);
     return null;
   }
 };
