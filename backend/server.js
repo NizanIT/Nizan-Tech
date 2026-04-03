@@ -67,6 +67,21 @@ app.use('/api/timeblock', require('./routes/timeblock'));
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
+// 🔍 Connection Test Route (To verify MongoDB Atlas connection)
+app.get('/api/test-db', async (req, res) => {
+  try {
+    const status = mongoose.connection.readyState === 1 ? 'Healthy ✅' : 'Disconnected ❌';
+    res.json({ 
+      success: true, 
+      database: status, 
+      env: process.env.NODE_ENV,
+      time: new Date() 
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Socket.IO
 io.on('connection', (socket) => {
   console.log(`🔌 Socket connected: ${socket.id}`);
