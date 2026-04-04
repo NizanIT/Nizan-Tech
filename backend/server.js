@@ -38,7 +38,7 @@ app.use((req, res, next) => {
 });
 
 // Middleware
-app.use(cors({ 
+app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -46,8 +46,8 @@ app.use(cors({
       console.log('Blocked by CORS:', origin);
       callback(new Error('Not allowed by CORS'), false);
     }
-  }, 
-  credentials: true 
+  },
+  credentials: true
 }));
 app.use(express.json());
 app.use(cookieParser());
@@ -75,12 +75,12 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }
 app.get('/api/test-db', async (req, res) => {
   try {
     const status = mongoose.connection.readyState === 1 ? 'Healthy ✅' : 'Disconnected ❌';
-    res.json({ 
-      success: true, 
-      database: status, 
+    res.json({
+      success: true,
+      database: status,
       env: process.env.NODE_ENV,
       mongodb_host: mongoose.connection.host,
-      time: new Date() 
+      time: new Date()
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

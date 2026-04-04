@@ -1,76 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { login, logout, getMe } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
-// POST /api/auth/login
-router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password)
-      return res.status(400).json({ success: false, message: 'Email and password are required.' });
+// @route   POST /api/auth/login
+router.post('/login', login);
 
-    const user = await User.findOne({ email }).select('+password');
-    if (!user || !user.isActive)
-      return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+// @route   POST /api/auth/logout
+router.post('/logout', logout);
 
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch)
-      return res.status(401).json({ success: false, message: 'Invalid credentials.' });
-
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-    const isProd = process.env.NODE_ENV === 'production' || !!process.env.RENDER;
-    
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: true, // 🔌 Proxy is always HTTPS
-      sameSite: 'Lax', // 🏰 Optimized for Same-Origin Proxying
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
-
-    res.json({
-      success: true,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatarColor: user.avatarColor
-      }
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// POST /api/auth/logout
-router.post('/logout', (req, res) => {
-  res.cookie('token', '', {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'Lax',
-    path: '/',
-    maxAge: 0
-  });
-  res.json({ success: true, message: 'Logged out.' });
-});
-
-
-// GET /api/auth/me
-router.get('/me', protect, (req, res) => {
-  res.json({
-    success: true,
-    user: {
-      id: req.user._id,
-      name: req.user.name,
-      email: req.user.email,
-      role: req.user.role,
-      avatarColor: req.user.avatarColor
-    }
-  });
-});
+// @route   GET /api/auth/me
+router.get('/me', protect, getMe);
 
 module.exports = router;
