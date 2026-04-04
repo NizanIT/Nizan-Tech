@@ -208,35 +208,71 @@ const initTheme = () => {
   });
 };
 
+// ─── AUTH STORE ─────────────────────────────────────────────
+const authStore = {
+  user: (() => {
+    try {
+      return JSON.parse(localStorage.getItem('user')) || null;
+    } catch { return null; }
+  })(),
+  save(user) {
+    this.user = user;
+    localStorage.setItem('user', JSON.stringify(user));
+  },
+  clear() {
+    this.user = null;
+    localStorage.removeItem('user');
+  }
+};
+
 // ─── AUTH GUARD ───────────────────────────────────────────
 const requireAuth = async (expectedRole) => {
+  const isLoginPage = window.location.pathname === '/' || window.location.pathname.includes('index.html');
+
+  // 1. 🛡️ Optimistic Render: Use cached user if available
+  if (authStore.user) {
+    setSidebarUser(authStore.user);
+    document.body.classList.remove('auth-loading');
+    
+    // Quick role check for cached user to prevent total mismatch flash
+    if (expectedRole && authStore.user.role !== expectedRole && !isLoginPage) {
+      window.location.href = authStore.user.role === 'admin' ? '/admin/dashboard.html' : '/employee/dashboard.html';
+      return null;
+    }
+  }
+
   try {
-    // 🛡️ Use silent mode to prevent error toasts during initial check
+    // 2. 📡 Background Verification (Handles Render Cold Start)
     const res = await api.get('/auth/me', true);
     const user = res.user;
     
+    // ✅ Success: Update cache and UI
+    authStore.save(user);
+    setSidebarUser(user);
+    document.body.classList.remove('auth-loading');
+
     if (expectedRole && user.role !== expectedRole) {
       window.location.href = user.role === 'admin' ? '/admin/dashboard.html' : '/employee/dashboard.html';
       return null;
     }
-
-    // ✅ Success: Reveal the page
-    document.body.classList.remove('auth-loading');
     return user;
-  } catch {
-    // ❌ Failure: Redirect to login with a small stability delay
-    setTimeout(() => {
+  } catch (err) {
+    // ❌ Failure: Clear cache and redirect to login
+    authStore.clear();
+    if (!isLoginPage) {
       window.location.href = '/index.html';
-    }, 100);
+    }
     return null;
   }
 };
 
 // ─── SET USER IN SIDEBAR ──────────────────────────────────
 const setSidebarUser = (user) => {
+  if (!user) return;
   const nameEl = document.getElementById('sidebarUserName');
   const roleEl = document.getElementById('sidebarUserRole');
   const avatarEl = document.getElementById('sidebarAvatar');
+  
   if (nameEl) nameEl.textContent = user.name;
   if (roleEl) {
     roleEl.textContent = user.role;
@@ -250,8 +286,12 @@ const setSidebarUser = (user) => {
 
 // ─── LOGOUT ───────────────────────────────────────────────
 const logout = async () => {
-  await api.post('/auth/logout');
-  window.location.replace('/index.html');
+  try {
+    await api.post('/auth/logout');
+  } finally {
+    authStore.clear();
+    window.location.replace('/index.html?logout=true');
+  }
 };
 
 document.getElementById('logoutBtn')?.addEventListener('click', logout);

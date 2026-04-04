@@ -10,9 +10,21 @@
   <link rel="stylesheet" href="css/globals.css" />
   <link rel="stylesheet" href="css/login.css" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    // 🛡️ Zero-Flash Theme Init
+    (() => {
+      const t = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.style.background = t === 'dark' ? '#0D0D1A' : '#F0F0FF';
+    })();
+  </script>
 </head>
 
-<body>
+<body class="auth-loading">
+  <div class="app-loader">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Nizan Tech</div>
+  </div>
   <div class="space-bg"></div>
   <div class="dot-grid"></div>
   <!-- Orbs -->
@@ -108,11 +120,6 @@
 
   <script src="js/utils.js"></script>
   <script>
-    // Init theme
-    (() => {
-      const t = localStorage.getItem('theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', t);
-    })();
 
     // Toggle password visibility
     document.getElementById('togglePass').addEventListener('click', function () {
@@ -146,8 +153,10 @@
           return;
         }
         
+        // 🛡️ Save to store for optimistic rendering on next page
+        authStore.save(data.user);
+        
         const role = data.user.role;
-        // SweetAlert Success
         Swal.fire({
           icon: 'success',
           title: 'Welcome Back!',
@@ -194,17 +203,31 @@
 
     // Already logged in?
     (async () => {
-      // 🛡️ Bypass redirect if "logout=true" is in URL (for testing/fixing loops)
-      if (window.location.search.includes('logout=true')) return;
+      const isLogout = window.location.search.includes('logout=true');
+      if (isLogout) {
+        authStore.clear(); 
+        document.body.classList.remove('auth-loading');
+        return;
+      }
 
+      // 🛡️ Optimistic Redirect: If we have a cached user, redirect immediately
+      if (authStore.user) {
+        const role = authStore.user.role;
+        window.location.href = role === 'admin' ? '/admin/dashboard.html' : '/employee/dashboard.html';
+        return; // Stay in loading state till redirect
+      }
+
+      // 🛡️ Otherwise, check with server
       try {
-        // 🛡️ Use silent mode to prevent error toasts during initial check
-        const data = await api.get('/auth/me', true);
-        if (data && data.user) {
-          const role = data.user.role;
-          window.location.href = role === 'admin' ? '/admin/dashboard.html' : '/employee/dashboard.html';
+        const user = await requireAuth();
+        if (user) {
+          window.location.href = user.role === 'admin' ? '/admin/dashboard.html' : '/employee/dashboard.html';
+        } else {
+          document.body.classList.remove('auth-loading');
         }
-      } catch { /* not logged in - stay on login page silently */ }
+      } catch {
+        document.body.classList.remove('auth-loading');
+      }
     })();
   </script>
 </body>

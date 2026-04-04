@@ -10,9 +10,21 @@
   <link rel="stylesheet" href="../css/globals.css" />
   <link rel="stylesheet" href="../css/sidebar.css" />
   <link rel="stylesheet" href="../css/admin.css" />
+  <script>
+    // 🛡️ Zero-Flash Theme Init
+    (() => {
+      const t = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.style.background = t === 'dark' ? '#0D0D1A' : '#F0F0FF';
+    })();
+  </script>
 </head>
 
 <body class="auth-loading">
+  <div class="app-loader">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Nizan Tech</div>
+  </div>
   <div class="mobile-topbar">
     <button class="hamburger" id="hamburger">☰</button>
     <span class="mobile-logo">Nizan Tech</span>
